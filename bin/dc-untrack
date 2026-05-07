@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# dc-untrack <path-relative-to-.claude>
+# Replace the symlink at ~/.claude/<path> with the real file from ~/datclaude/<path>,
+# then delete the datclaude copy. Run `git rm` yourself afterwards.
+set -euo pipefail
+
+DC="$HOME/datclaude"
+CL="$HOME/.claude"
+
+[[ $# -eq 1 ]] || { echo "usage: $0 <path-relative-to-.claude>" >&2; exit 2; }
+rel="$1"
+src="$CL/$rel"
+dst="$DC/$rel"
+
+[[ -L "$src" ]] || { echo "not a symlink: $src" >&2; exit 1; }
+[[ "$(readlink "$src")" == "$dst" ]] || { echo "symlink points elsewhere: $(readlink "$src")" >&2; exit 1; }
+[[ -e "$dst" ]] || { echo "datclaude copy missing: $dst" >&2; exit 1; }
+
+rm "$src"
+mv "$dst" "$src"
+echo "untracked: $src is now a real file again. Run: cd $DC && git rm '$rel' && git commit"

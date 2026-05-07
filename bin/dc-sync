@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# dc-sync — for every tracked entry under ~/datclaude/, ensure the matching path under
+# ~/.claude/ is a symlink to it. Idempotent. Fails loudly on real-file conflicts.
+set -euo pipefail
+
+DC="$HOME/datclaude"
+CL="$HOME/.claude"
+
+# Restore tight perms on plugin JSONs — git stores 644, but Claude wrote them 600.
+chmod 600 "$DC"/plugins/*.json 2>/dev/null || true
+
+skip() {
+  case "$1" in
+    .git|.git/*|bin|bin/*|README.md|.gitignore|.DS_Store) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+walk() {
+  local rel="$1"
+  local src="$DC/$rel" dst="$CL/$rel"
+  skip "$rel" && return 0
+
+  # Already correctly linked?
+  if [[ -L "$dst" ]]; then
+    if [[ "$(readlink "$dst")" == "$src" ]]; then return 0; fi
+    echo "CONFLICT: $dst -> $(readlink "$dst") (expected $src)" >&2
+    return 1
+  fi
+
+  if [[ -d "$src" ]]; then
+    if [[ ! -e "$dst" ]]; then
+      mkdir -p "$(dirname "$dst")"
+      ln -s "$src" "$dst"
+      echo "linked dir: $dst"
+      return 0
+    fi
+    # Real dir already exists at destination — recurse, link children individually.
+    local child
+    for child in "$src"/* "$src"/.[!.]*; do
+      [[ -e "$child" || -L "$child" ]] || continue
+      walk "$rel/$(basename "$child")"
+    done
+    return 0
+  fi
+
+  if [[ -f "$src" ]]; then
+    if [[ -e "$dst" ]]; then
+      echo "CONFLICT: real file at $dst — back up or remove, then re-run" >&2
+      return 1
+    fi
+    mkdir -p "$(dirname "$dst")"
+    ln -s "$src" "$dst"
+    echo "linked file: $dst"
+  fi
+}
+
+shopt -s dotglob nullglob
+fail=0
+for entry in "$DC"/*; do
+  rel="$(basename "$entry")"
+  skip "$rel" && continue
+  walk "$rel" || fail=1
+done
+exit $fail

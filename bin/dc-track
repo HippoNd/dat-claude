@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# dc-track <path-relative-to-.claude>
+# Move ~/.claude/<path> into ~/datclaude/<path> and symlink it back.
+set -euo pipefail
+
+DC="$HOME/datclaude"
+CL="$HOME/.claude"
+
+[[ $# -eq 1 ]] || { echo "usage: $0 <path-relative-to-.claude>" >&2; exit 2; }
+rel="$1"
+src="$CL/$rel"
+dst="$DC/$rel"
+
+# Refuse if Claude Code is running — atomic rewrites by Claude could clobber the
+# symlink mid-operation. Override only if the user is sure (e.g. settings.json edits).
+if pgrep -fq "claude" && [[ "${DC_FORCE:-}" != "1" ]]; then
+  echo "claude process detected; quit Claude Code or set DC_FORCE=1 to override" >&2
+  exit 1
+fi
+
+[[ -L "$src" ]] && { echo "already a symlink: $src -> $(readlink "$src")" >&2; exit 1; }
+[[ -e "$src" ]] || { echo "not found: $src" >&2; exit 1; }
+[[ -e "$dst" ]] && { echo "destination exists: $dst (refusing to overwrite)" >&2; exit 1; }
+
+mkdir -p "$(dirname "$dst")"
+mv "$src" "$dst"
+ln -s "$dst" "$src"
+echo "tracked: $src -> $dst"
