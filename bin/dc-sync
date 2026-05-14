@@ -3,7 +3,7 @@
 # ~/.claude/ is a symlink to it. Idempotent. Fails loudly on real-file conflicts.
 set -euo pipefail
 
-DC="$HOME/datclaude"
+DC="$HOME/dat-claude"
 CL="$HOME/.claude"
 
 # Restore tight perms on plugin JSONs — git stores 644, but Claude wrote them 600.
@@ -11,7 +11,7 @@ chmod 600 "$DC"/plugins/*.json 2>/dev/null || true
 
 skip() {
   case "$1" in
-    .git|.git/*|bin|bin/*|README.md|.gitignore|.DS_Store) return 0 ;;
+    .git|.git/*|.claude|.claude/*|bin|bin/*|README.md|.gitignore|.DS_Store) return 0 ;;
     *) return 1 ;;
   esac
 }
