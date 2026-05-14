@@ -5,7 +5,7 @@
       "url": "https://github.com/anthropics/skills.git"
     },
     "installLocation": "/Users/datnguyen/.claude/plugins/marketplaces/anthropic-agent-skills",
-    "lastUpdated": "2025-12-16T15:52:44.367Z"
+    "lastUpdated": "2026-05-14T09:01:29.454Z"
   },
   "claude-plugins-official": {
     "source": {
@@ -13,6 +13,14 @@
       "repo": "anthropics/claude-plugins-official"
     },
     "installLocation": "/Users/datnguyen/.claude/plugins/marketplaces/claude-plugins-official",
-    "lastUpdated": "2026-05-07T13:23:33.621Z"
+    "lastUpdated": "2026-05-14T09:01:29.658Z"
+  },
+  "compound-engineering-plugin": {
+    "source": {
+      "source": "git",
+      "url": "https://github.com/EveryInc/every-marketplace.git"
+    },
+    "installLocation": "/Users/datnguyen/.claude/plugins/marketplaces/compound-engineering-plugin",
+    "lastUpdated": "2026-05-10T08:58:14.435Z"
   }
 }

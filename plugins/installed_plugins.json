@@ -1,16 +1,6 @@
 {
   "version": 2,
   "plugins": {
-    "example-skills@anthropic-agent-skills": [
-      {
-        "scope": "user",
-        "installPath": "/Users/datnguyen/.claude/plugins/cache/anthropic-agent-skills/example-skills/ef740771ac90",
-        "version": "ef740771ac90",
-        "installedAt": "2025-12-03T18:02:13.487Z",
-        "lastUpdated": "2025-12-03T18:02:13.487Z",
-        "gitCommitSha": "ef740771ac901e03fbca3ce4e1c453a96010f30a"
-      }
-    ],
     "figma@claude-plugins-official": [
       {
         "scope": "user",
@@ -19,6 +9,16 @@
         "installedAt": "2026-03-30T16:48:46.958Z",
         "lastUpdated": "2026-04-28T19:38:48.019Z",
         "gitCommitSha": "b20d5bb968bc930e8ad4730dcfd413aa1a767133"
+      }
+    ],
+    "compound-engineering@compound-engineering-plugin": [
+      {
+        "scope": "user",
+        "installPath": "/Users/datnguyen/.claude/plugins/cache/compound-engineering-plugin/compound-engineering/3.7.3",
+        "version": "3.7.3",
+        "installedAt": "2026-05-10T08:59:58.283Z",
+        "lastUpdated": "2026-05-10T08:59:58.283Z",
+        "gitCommitSha": "834ca4e58a82c4e06040ff448bc4bd97551f4be9"
       }
     ]
   }
