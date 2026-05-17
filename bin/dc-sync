@@ -1,10 +1,29 @@
 #!/usr/bin/env bash
 # dc-sync — for every tracked entry under ~/datclaude/, ensure the matching path under
 # ~/.claude/ is a symlink to it. Idempotent. Fails loudly on real-file conflicts.
+#
+# Exception: TEMPLATE_FILES (plugin metadata that Claude rewrites via atomic-rename) are
+# materialized as real files with $HOME expanded. Symlinking them is fragile because
+# Claude's atomic-rewrite-on-install clobbers the link.
 set -euo pipefail
 
 DC="$HOME/dat-claude"
 CL="$HOME/.claude"
+
+# Files materialized via $HOME substitution instead of symlinked. Paths are relative
+# to $DC (and the mirror under $CL).
+TEMPLATE_FILES=(
+  "plugins/installed_plugins.json"
+  "plugins/known_marketplaces.json"
+)
+
+is_template() {
+  local rel="$1" t
+  for t in "${TEMPLATE_FILES[@]}"; do
+    [[ "$rel" == "$t" ]] && return 0
+  done
+  return 1
+}
 
 # Restore tight perms on plugin JSONs — git stores 644, but Claude wrote them 600.
 chmod 600 "$DC"/plugins/*.json 2>/dev/null || true
@@ -16,10 +35,44 @@ skip() {
   esac
 }
 
+# Materialize a template file: expand $HOME and write to destination as a real file.
+# Idempotent: if dst is already current, no-op. Replaces stale symlinks. Fails if
+# destination is a real file whose content (after re-expansion) is not current.
+materialize_template() {
+  local rel="$1"
+  local src="$DC/$rel" dst="$CL/$rel"
+  local rendered
+  rendered="$(sed "s|\\\$HOME|$HOME|g" "$src")"
+
+  mkdir -p "$(dirname "$dst")"
+
+  if [[ -L "$dst" ]]; then
+    rm -f "$dst"
+  elif [[ -f "$dst" ]]; then
+    if [[ "$(cat "$dst")" == "$rendered" ]]; then
+      return 0
+    fi
+    # Real file with different content. Back up before overwrite so we never destroy
+    # user state (e.g. plugin entries Claude added since last capture).
+    local backup="$dst.dc-sync.bak.$(date +%Y%m%d-%H%M%S)"
+    cp "$dst" "$backup"
+    echo "backed up: $dst -> $backup" >&2
+  fi
+
+  printf '%s\n' "$rendered" > "$dst"
+  chmod 600 "$dst"
+  echo "materialized: $dst"
+}
+
 walk() {
   local rel="$1"
   local src="$DC/$rel" dst="$CL/$rel"
   skip "$rel" && return 0
+
+  if is_template "$rel"; then
+    materialize_template "$rel"
+    return 0
+  fi
 
   # Already correctly linked?
   if [[ -L "$dst" ]]; then

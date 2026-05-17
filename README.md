@@ -30,6 +30,26 @@ If `~/.claude/` already has its own real `settings.json` (etc.) from Claude's fi
 `dc-sync` refuses to overwrite. Reconcile manually: diff the two copies, decide which
 wins, delete the loser, re-run.
 
+## Templated files
+
+Some files cannot be safely symlinked because (a) Claude Code rewrites them via
+atomic-rename on plugin install/uninstall (clobbering the symlink — see below), and
+(b) they embed absolute paths under `/Users/<name>/.claude/...` that differ per
+machine.
+
+These files are stored in datclaude as templates using `$HOME` as a literal
+placeholder. `dc-sync` materializes them into `~/.claude/...` as real files by
+substituting `$HOME` with the current home directory. The list lives in
+`bin/dc-sync` under `TEMPLATE_FILES`:
+
+- `plugins/installed_plugins.json`
+- `plugins/known_marketplaces.json`
+
+Capturing local changes back: when Claude adds/removes a plugin or marketplace,
+the real file at `~/.claude/plugins/<file>.json` diverges from the template.
+Copy it back manually, replace your `/Users/<you>` prefix with literal `$HOME`,
+and commit. (No automated `dc-capture` yet.)
+
 ## Known failure modes
 
 ### Atomic-rewrite clobber
@@ -38,8 +58,9 @@ Programs (including Claude Code on plugin install/uninstall) often write files v
 "write to tmp file, `rename(2)` over the original." This replaces the symlink at the
 target path with a regular file. The datclaude copy goes stale and out of sync.
 
-To check: run `ls -la ~/.claude/plugins/installed_plugins.json` after installing a
-plugin. If it's no longer a symlink, that's the clobber.
+For the plugin metadata files this is now handled via the template mechanism above.
+For other tracked files: run `ls -la ~/.claude/<path>` after a suspect operation.
+If it's no longer a symlink, that's the clobber.
 
 Recovery: decide which copy is current (likely the now-real file in `~/.claude/`),
 move it back into `datclaude/`, run `bin/dc-sync` to re-establish the symlink.

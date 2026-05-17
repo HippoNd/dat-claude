@@ -4,7 +4,15 @@
       "source": "github",
       "repo": "anthropics/claude-plugins-official"
     },
-    "installLocation": "/Users/hoangdat/.claude/plugins/marketplaces/claude-plugins-official",
-    "lastUpdated": "2026-05-14T09:37:53.863Z"
+    "installLocation": "$HOME/.claude/plugins/marketplaces/claude-plugins-official",
+    "lastUpdated": "2026-05-17T08:50:33.662Z"
+  },
+  "compound-engineering-plugin": {
+    "source": {
+      "source": "git",
+      "url": "https://github.com/EveryInc/every-marketplace.git"
+    },
+    "installLocation": "$HOME/.claude/plugins/marketplaces/compound-engineering-plugin",
+    "lastUpdated": "2026-05-14T12:50:53.536Z"
   }
 }
